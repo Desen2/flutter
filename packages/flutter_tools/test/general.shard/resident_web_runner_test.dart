@@ -16,8 +16,8 @@ import 'package:flutter_tools/src/base/logger.dart';
 import 'package:flutter_tools/src/base/platform.dart';
 import 'package:flutter_tools/src/base/time.dart';
 import 'package:flutter_tools/src/build_info.dart';
-import 'package:flutter_tools/src/build_system/targets/scene_importer.dart';
-import 'package:flutter_tools/src/build_system/targets/shader_compiler.dart';
+import 'package:flutter_tools/src/build_system/tools/scene_importer.dart';
+import 'package:flutter_tools/src/build_system/tools/shader_compiler.dart';
 import 'package:flutter_tools/src/compile.dart';
 import 'package:flutter_tools/src/devfs.dart';
 import 'package:flutter_tools/src/device.dart';
@@ -63,6 +63,9 @@ const List<VmServiceExpectation> kAttachLogExpectations =
 const List<VmServiceExpectation> kAttachIsolateExpectations =
     <VmServiceExpectation>[
   FakeVmServiceRequest(method: 'streamListen', args: <String, Object>{
+    'streamId': 'Service',
+  }),
+  FakeVmServiceRequest(method: 'streamListen', args: <String, Object>{
     'streamId': 'Isolate',
   }),
   FakeVmServiceRequest(method: 'registerService', args: <String, Object>{
@@ -102,7 +105,7 @@ void main() {
   late FakeWebServerDevice webServerDevice;
   late FakeDevice mockDevice;
   late FakeVmServiceHost fakeVmServiceHost;
-  late FileSystem fileSystem;
+  late MemoryFileSystem fileSystem;
   late ProcessManager processManager;
   late TestUsage testUsage;
   late FakeAnalytics fakeAnalytics;
@@ -269,7 +272,7 @@ void main() {
   testUsingContext('WebRunner copies compiled app.dill to cache during startup',
       () async {
     final DebuggingOptions debuggingOptions = DebuggingOptions.enabled(
-      const BuildInfo(BuildMode.debug, null, treeShakeIcons: false),
+      const BuildInfo(BuildMode.debug, null, treeShakeIcons: false, packageConfigPath: '.dart_tool/package_config.json'),
     );
     final ResidentRunner residentWebRunner =
         setUpResidentRunner(flutterDevice, debuggingOptions: debuggingOptions);
@@ -973,7 +976,7 @@ void main() {
       const FakeVmServiceRequest(
         method: kHotRestartServiceName,
         // Failed response,
-        errorCode: RPCErrorCodes.kInternalError,
+        error: FakeRPCError(code: RPCErrorCodes.kInternalError),
       ),
     ]);
     setupMocks();
@@ -1562,7 +1565,6 @@ class FakeWebDevFS extends Fake implements WebDevFS {
     DevFSWriter? devFSWriter,
     String? target,
     AssetBundle? bundle,
-    DateTime? firstBuildTime,
     bool bundleFirstUpload = false,
     bool fullRestart = false,
     String? projectRootPath,
@@ -1731,7 +1733,6 @@ class FakeFlutterDevice extends Fake implements FlutterDevice {
     Uri? mainUri,
     String? target,
     AssetBundle? bundle,
-    DateTime? firstBuildTime,
     bool bundleFirstUpload = false,
     bool bundleDirty = false,
     bool fullRestart = false,
@@ -1756,10 +1757,7 @@ class FakeShaderCompiler implements DevelopmentShaderCompiler {
   const FakeShaderCompiler();
 
   @override
-  void configureCompiler(
-    TargetPlatform? platform, {
-    required ImpellerStatus impellerStatus,
-  }) { }
+  void configureCompiler(TargetPlatform? platform) { }
 
   @override
   Future<DevFSContent> recompileShader(DevFSContent inputShader) {

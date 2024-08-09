@@ -42,7 +42,7 @@ const List<String> _kSharedConfig = <String>[
 
 void main() {
   late Environment environment;
-  late FileSystem fileSystem;
+  late MemoryFileSystem fileSystem;
   late FakeProcessManager processManager;
   late Artifacts artifacts;
   late BufferLogger logger;
@@ -287,6 +287,7 @@ void main() {
     processManager.addCommands(<FakeCommand>[
       const FakeCommand(command: <String>[
         'HostArtifact.impellerc',
+        '--sksl',
         '--runtime-stage-metal',
         '--iplr',
         '--sl=/App.framework/flutter_assets/shader.glsl',
@@ -540,6 +541,7 @@ void main() {
         '--delete',
         '--filter',
         '- .DS_Store/',
+        '--chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r',
         'Artifact.flutterFramework.TargetPlatform.ios.debug.EnvironmentType.physical',
         outputDir.path,
       ]);
@@ -596,10 +598,11 @@ void main() {
           '--delete',
           '--filter',
           '- .DS_Store/',
+          '--chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r',
           'Artifact.flutterFramework.TargetPlatform.ios.debug.EnvironmentType.simulator',
           outputDir.path,
           ],
-          onRun: () => binary.createSync(recursive: true),
+          onRun: (_) => binary.createSync(recursive: true),
         ),
         lipoCommandNonFatResult,
         FakeCommand(command: <String>[

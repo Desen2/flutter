@@ -18,6 +18,12 @@ class FlutterAppPluginLoaderPlugin implements Plugin<Settings> {
         if (!pluginsFile.exists()) {
             return
         }
+<<<<<<< HEAD
+=======
+
+        // Load shared gradle functions
+        settings.apply from: Paths.get(settings.ext.flutterSdkPath, "packages", "flutter_tools", "gradle", "src", "main", "groovy", "native_plugin_loader.groovy")
+>>>>>>> 80c2e84975bbd28ecf5f8d4bd4ca5a2490bfc819
 
         def object = new JsonSlurper().parseText(pluginsFile.text)
         assert object instanceof Map
